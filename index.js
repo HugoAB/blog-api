@@ -1,5 +1,6 @@
 const app = require('./app')
 const conn = require('./config/db')
+require('dotenv').config()
 
 // connect db
 conn.connect(err => {
