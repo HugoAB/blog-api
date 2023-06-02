@@ -2,7 +2,13 @@ const { json } = require('express')
 const conn = require('../config/db')
 
 const getAllPosts = (req, res) => {
-  const sql = "SELECT * FROM post"
+  const sql = `
+    SELECT post.title, post.content, post.publishedAt,
+    CONCAT(user.firstname, " ", user.lastname) AS author
+    FROM post
+    JOIN user
+    ON post.user_id = user.id;
+  `
   conn.query(sql, (err, results) => {
     if(err) {
       res.json({
@@ -16,7 +22,14 @@ const getAllPosts = (req, res) => {
 
 const getPostById = (req, res) => {
   const { id } = req.params
-  const sql = "SELECT * FROM post WHERE id=?"
+  const sql = `
+    SELECT post.title, post.content, post.publishedAt,
+    CONCAT(user.firstname, " ", user.lastname) AS author
+    FROM post
+    JOIN user
+    ON post.user_id = user.id
+    WHERE post.id=?;
+  `
 
   conn.query(sql, id, (err, data) => {
     if(err) {
@@ -35,14 +48,13 @@ const getPostById = (req, res) => {
 
 const createPost = (req, res) => {
   const { title, content } = req.body
-  const sql = "INSERT INTO post (title, content) VALUES(?, ?)"
+  const sql = "INSERT INTO post (title, content, user_id) VALUES(?, ?, ?)"
   if(!title || !content) {
     res.status(400).json({
       error: 'All fields are required.'
     })
   }
-
-  conn.query(sql, [title, content], (err, data) => {
+  conn.query(sql, [title, content, req.user.user_id], (err, data) => {
     if(err) {
       res.status(500).json({
         error: err.message
